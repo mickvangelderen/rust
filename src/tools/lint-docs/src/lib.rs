@@ -4,8 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use walkdir::WalkDir;
-
 mod groups;
+mod json;
 
 pub struct LintExtractor<'a> {
     /// Path to the `src` directory, where it will scan for `.rs` files to
@@ -115,6 +115,7 @@ impl<'a> LintExtractor<'a> {
     /// Collects all lints, and writes the markdown documentation at the given directory.
     pub fn extract_lint_docs(&self) -> Result<(), Box<dyn Error>> {
         let mut lints = self.gather_lints()?;
+
         for lint in &mut lints {
             self.generate_output_example(lint).map_err(|e| {
                 format!(
@@ -126,8 +127,11 @@ impl<'a> LintExtractor<'a> {
                 )
             })?;
         }
+
+        let groups = self.collect_groups()?;
+        self.save_lints_json(&lints, &groups)?;
         self.save_lints_markdown(&lints)?;
-        self.generate_group_docs(&lints)?;
+        self.generate_group_docs(&lints, &groups)?;
         Ok(())
     }
 

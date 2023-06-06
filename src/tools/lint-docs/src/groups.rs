@@ -17,17 +17,20 @@ static GROUP_DESCRIPTIONS: &[(&str, &str)] = &[
     ("rust-2021-compatibility", "Lints used to transition code from the 2018 edition to 2021"),
 ];
 
-type LintGroups = BTreeMap<String, BTreeSet<String>>;
+pub(crate) type LintGroups = BTreeMap<String, BTreeSet<String>>;
 
 impl<'a> LintExtractor<'a> {
     /// Updates the documentation of lint groups.
-    pub(crate) fn generate_group_docs(&self, lints: &[Lint]) -> Result<(), Box<dyn Error>> {
-        let groups = self.collect_groups()?;
+    pub(crate) fn generate_group_docs(
+        &self,
+        lints: &[Lint],
+        groups: &LintGroups,
+    ) -> Result<(), Box<dyn Error>> {
         let groups_path = self.out_path.join("groups.md");
         let contents = fs::read_to_string(&groups_path)
             .map_err(|e| format!("could not read {}: {}", groups_path.display(), e))?;
         let new_contents =
-            contents.replace("{{groups-table}}", &self.make_groups_table(lints, &groups)?);
+            contents.replace("{{groups-table}}", &self.make_groups_table(lints, groups)?);
         // Delete the output because rustbuild uses hard links in its copies.
         let _ = fs::remove_file(&groups_path);
         fs::write(&groups_path, new_contents)
@@ -36,7 +39,7 @@ impl<'a> LintExtractor<'a> {
     }
 
     /// Collects the group names from rustc.
-    fn collect_groups(&self) -> Result<LintGroups, Box<dyn Error>> {
+    pub(crate) fn collect_groups(&self) -> Result<LintGroups, Box<dyn Error>> {
         let mut result = BTreeMap::new();
         let mut cmd = Command::new(self.rustc_path);
         cmd.arg("-Whelp");

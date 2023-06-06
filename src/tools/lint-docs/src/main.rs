@@ -72,6 +72,7 @@ fn doit() -> Result<(), Box<dyn Error>> {
     if rustc_target.is_none() {
         return Err("--rustc-target must be specified to the rustc target".into());
     }
+
     let le = lint_docs::LintExtractor {
         src_path: &src_path.unwrap(),
         out_path: &out_path.unwrap(),
