@@ -36,6 +36,7 @@ struct Lint<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<&'a str>,
     level: Level,
+    stable: bool,
 }
 
 impl<'a> LintExtractor<'a> {
@@ -62,6 +63,7 @@ impl<'a> LintExtractor<'a> {
                 docs: lint.doc.join("\n"),
                 group: lint_to_group.get(lint.name.as_str()).copied(),
                 level: lint.level.into(),
+                stable: lint.stable,
             })
             .collect::<Vec<_>>();
 

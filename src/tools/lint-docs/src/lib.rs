@@ -29,6 +29,7 @@ struct Lint {
     level: Level,
     path: PathBuf,
     lineno: usize,
+    stable: bool,
 }
 
 impl Lint {
@@ -260,9 +261,18 @@ impl<'a> LintExtractor<'a> {
                     }
                 }
             };
+            let mut stable = true;
+            while let Some((_, line)) = lines.next() {
+                let line = line.trim();
+                if line.starts_with("@feature_gate") {
+                    stable = false;
+                } else if line.starts_with("}") {
+                    break;
+                }
+            }
             // The rest of the lint definition is ignored.
             assert!(!doc.is_empty());
-            lints.push(Lint { name, doc, level, path: PathBuf::from(path), lineno: lint_start });
+            lints.push(Lint { name, doc, level, path: PathBuf::from(path), lineno: lint_start, stable });
         }
     }
 
